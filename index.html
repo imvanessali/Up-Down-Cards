@@ -103,20 +103,29 @@
     }
     
     .card-content {
-      font-size: 1.35rem;
-      line-height: 1.8;
+      font-size: 1.1rem;
+      line-height: 1.7;
       letter-spacing: 0.01em;
     }
     
     @media (max-width: 640px) {
       .card-content {
-        font-size: 1.15rem;
-        line-height: 1.7;
+        font-size: 1rem;
+        line-height: 1.6;
       }
     }
     
     .about-modal-content {
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+    
+    .blur-content {
+      transition: filter 0.4s ease-out;
+    }
+    
+    .blur-content.blurred {
+      filter: blur(8px);
+      user-select: none;
     }
     
     </style>
@@ -132,10 +141,8 @@
     <div class="max-w-2xl mx-auto flex flex-col items-center gap-2">
       <!-- Title -->
       <div class="flex items-center gap-2">
-        <div class="relative w-5 h-5">
-          <svg viewBox="0 0 24 24" fill="currentColor" class="w-full h-full text-lime-brand">
-            <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z"/>
-          </svg>
+        <div class="relative w-3 h-5" style="transform: rotate(10deg);">
+          <div class="w-full h-full bg-lime-brand rounded-sm"></div>
         </div>
         <span class="text-lg font-semibold tracking-tight display-font text-white">
           UpDownCard
@@ -163,30 +170,32 @@
             <span id="currentIndex">1</span>/<span id="totalCards">5</span>
           </span>
         </div>
-        <div id="cardInner" class="card-inner rounded-[32px] p-8 sm:p-10 card-shadow max-h-[60vh] overflow-y-auto">
-          <!-- Type Badge -->
-          <div class="mb-6">
-            <span id="typeBadge" class="type-badge inline-block px-3 py-1 rounded-full text-black text-xs font-semibold display-font uppercase tracking-wider">
-              leadership
-            </span>
+        <div id="cardInner" class="card-inner rounded-[32px] p-6 sm:p-8 card-shadow">
+          <!-- Word -->
+          <div class="mb-2">
+            <h2 id="wordText" class="text-2xl sm:text-3xl font-bold text-white display-font">
+              abstraction
+            </h2>
           </div>
           
-          <!-- Original Content -->
-          <div class="mb-4">
-            <p id="originalText" class="card-content text-zinc-100">
-              Before that, she started a contact management startup that was acquired by LinkedIn where she ended up leading LinkedIn's marketing efforts for their growth team.
-            </p>
-          </div>
-          
-          <!-- Translation Area (Hidden by default) -->
-          <div id="translationArea" class="translation-area">
-            <div class="border-t border-zinc-800 pt-6 mt-6">
-              <div class="flex items-center gap-2 mb-3">
-                <i data-lucide="languages" class="w-4 h-4 text-lime-brand"></i>
-                <span class="text-xs text-zinc-500 display-font uppercase tracking-wider">Translation</span>
-              </div>
-              <p id="translationText" class="card-content text-zinc-400">
-                在此之前，她创办了一家联系人管理初创公司，被LinkedIn收购后，她最终负责领导LinkedIn增长团队的营销工作。
+          <!-- Blurred content area -->
+          <div id="blurredContent" class="blur-content blurred">
+            <!-- Phonetic · POS · Meaning -->
+            <div id="metaArea" class="mb-4">
+              <p class="text-zinc-400 display-font text-sm">
+                <span id="phoneticText">/æbˈstrækʃən/</span>
+                <span class="text-zinc-600 mx-2">·</span>
+                <span id="posText">n.</span>
+                <span class="text-zinc-600 mx-2">·</span>
+                <span id="meaningText" class="text-lime-brand">抽象</span>
+              </p>
+            </div>
+            
+            <!-- Sentence with Type -->
+            <div class="mb-4">
+              <p class="card-content text-zinc-100">
+                <span id="sentenceText">And so the idea of a part system is that there's an abstraction above agile and design thinking that we have to pay attention to build solid organizations and to execute well at the product and the business layer.</span>
+                <span id="typeBadge" class="text-zinc-500 text-sm display-font ml-2">#leadership</span>
               </p>
             </div>
           </div>
@@ -204,14 +213,29 @@
                 <div class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center flex-shrink-0">
                   <i data-lucide="chevron-down" class="w-4 h-4 text-lime-brand"></i>
                 </div>
-                <span>Swipe down to show translation</span>
+                <span>Swipe down to reveal</span>
               </div>
             </div>
+          </div>
+          
+          <!-- Hidden translation area (kept for compatibility) -->
+          <div id="translationArea" class="hidden">
+            <p id="translationText"></p>
           </div>
         </div>
       </div>
     </div>
   </main>
+
+  <!-- Footer with Share Button -->
+  <footer class="fixed bottom-0 left-0 right-0 z-50 px-6 py-4">
+    <div class="max-w-2xl mx-auto flex justify-center">
+      <button id="shareBtn" class="flex items-center gap-2 text-sm text-zinc-500 hover:text-lime-brand transition-colors display-font">
+        <i data-lucide="share" class="w-4 h-4"></i>
+        <span>Share</span>
+      </button>
+    </div>
+  </footer>
 
   <!-- About Modal -->
   <div id="aboutModal" class="fixed inset-0 z-[100] hidden">
@@ -228,24 +252,20 @@
           <h2 class="text-2xl font-semibold display-font text-white">Why I built this?</h2>
           
           <p class="text-zinc-300 leading-relaxed">
-            All sentences are sourced from podcast transcripts generously made public by Lenny.
+            All sentences are sourced from podcast transcripts generously made public by <a href="https://x.com/lennysan" target="_blank" rel="noopener noreferrer" class="text-lime-brand hover:underline">Lenny</a>.
           </p>
           
           <p class="text-zinc-300 leading-relaxed">
-            <span class="text-lime-brand italic">"Why not learn authentic English expressions while simultaneously mastering top-tier product thinking?"</span> That is why I built this website.
+            "Why not learn authentic English expressions while simultaneously mastering top-tier product thinking?" That is why I built this website.
           </p>
           
           <p class="text-zinc-300 leading-relaxed">
             Swipe up for the next card, and swipe down to reveal hidden content. It's like flashcards, but more TikTok-y.
           </p>
           
-          <p class="text-zinc-300 leading-relaxed">
-            In the future, I plan to introduce a feature enabling users to upload their own materials.
-          </p>
-          
           <div class="pt-4 border-t border-zinc-800">
             <a href="https://x.com/imvanessali" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-lime-brand hover:underline display-font">
-              <span>Built by @imvanessali</span>
+              Built by @imvanessali
               <i data-lucide="external-link" class="w-4 h-4"></i>
             </a>
           </div>
@@ -257,39 +277,8 @@
   <script>
     lucide.createIcons();
     
-    // Card Data
-    const cards = [
-      {
-        id: 1,
-        original: "Before that, she started a contact management startup that was acquired by LinkedIn where she ended up leading LinkedIn's marketing efforts for their growth team.",
-        type: "leadership",
-        translation: "在此之前，她创办了一家联系人管理初创公司，被LinkedIn收购后，她最终负责领导LinkedIn增长团队的营销工作。"
-      },
-      {
-        id: 2,
-        original: "Sprig lets product teams collect user insights fast, allowing you to better understand why users take certain actions and how they feel about the experience.",
-        type: "research",
-        translation: "Sprig让产品团队能够快速收集用户洞察，帮助你更好地理解用户为何采取某些行动以及他们对体验的感受。"
-      },
-      {
-        id: 3,
-        original: "Some of them just said, \"Here are my top two, and here's one I think you should avoid.\" I wanted to design it in a way where if you're a busy founder, you're a busy product person, which is the list that I chose for this curiosity loop, you would be able to sit down on your couch at the end of the night, read this interesting email and tap out a quick reply and give me that answer.",
-        type: "research",
-        translation: "有些人只是说：「这是我最推荐的两个，这是我认为你应该避免的。」我想设计一种方式，让忙碌的创始人或产品人员能在晚上坐在沙发上，读一封有趣的邮件，然后快速回复给出答案。"
-      },
-      {
-        id: 4,
-        original: "So when I was working in marketing and product at a startup, one of the things we would always have is a group of our top customers on DM, basically.",
-        type: "research",
-        translation: "在我做初创公司营销和产品工作时，我们总会在私信群里维护一批核心客户。"
-      },
-      {
-        id: 5,
-        original: "Do you mind just giving us your quick thoughts and telling us why?\" And then being able to as a marketer come back to the product conversation and say, here is the literal voice of the customer and four or five different verbatims on what people think about this really enabled me as a marketer to have a seat at the table.",
-        type: "research",
-        translation: "「你能快速告诉我们你的想法和原因吗？」然后作为营销人员回到产品讨论中说：这是客户的原话，这里有四五条关于他们看法的真实反馈——这让我作为营销人员在决策桌上有了一席之地。"
-      }
-    ];
+    // Card Data - will be loaded from JSON
+    let cards = [];
     
     // State
     let currentIndex = 0;
@@ -301,18 +290,33 @@
     // DOM Elements
     const swipeCard = document.getElementById('swipeCard');
     const cardInner = document.getElementById('cardInner');
+    const wordText = document.getElementById('wordText');
+    const phoneticText = document.getElementById('phoneticText');
+    const posText = document.getElementById('posText');
+    const meaningText = document.getElementById('meaningText');
+    const sentenceText = document.getElementById('sentenceText');
     const typeBadge = document.getElementById('typeBadge');
-    const originalText = document.getElementById('originalText');
     const translationArea = document.getElementById('translationArea');
     const translationText = document.getElementById('translationText');
     const currentIndexEl = document.getElementById('currentIndex');
     const totalCardsEl = document.getElementById('totalCards');
     const progressCircle = document.getElementById('progressCircle');
     const instructionsArea = document.getElementById('instructionsArea');
+    const blurredContent = document.getElementById('blurredContent');
     
-    // Initialize
-    totalCardsEl.textContent = cards.length;
-    updateProgress();
+    // Load vocabulary data from JSON
+    fetch('vocabulary_learning.json')
+      .then(response => response.json())
+      .then(data => {
+        // Shuffle and take first 50 cards for variety
+        cards = data.sort(() => Math.random() - 0.5).slice(0, 50);
+        totalCardsEl.textContent = cards.length;
+        updateCard();
+        updateProgress();
+      })
+      .catch(error => {
+        console.error('Error loading vocabulary:', error);
+      });
     
     // Touch/Mouse Events
     swipeCard.addEventListener('touchstart', handleStart, { passive: true });
@@ -359,7 +363,12 @@
         
         // Apply transform - more responsive
         const resistance = 0.8;
+        
+        // Calculate opacity based on swipe distance (decrease when swiping up)
+        const opacity = deltaY < 0 ? Math.max(0.3, 1 - Math.abs(deltaY) / 200) : 1;
+        
         swipeCard.style.transform = `translateY(${limitedDelta * resistance}px) rotateX(${-limitedDelta * 0.02}deg)`;
+        swipeCard.style.opacity = opacity;
       }
     }
     
@@ -369,8 +378,9 @@
       
       const deltaY = currentY - startY;
       
-      swipeCard.style.transition = 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+      swipeCard.style.transition = 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
       swipeCard.style.transform = 'translateY(0) rotateX(0)';
+      swipeCard.style.opacity = 1;
       
       // Check if content is scrollable
       const isScrollable = cardInner.scrollHeight > cardInner.clientHeight + 5;
@@ -382,11 +392,11 @@
       const canSwipeDown = !isScrollable || isAtBottom;
       
       // Determine action based on swipe distance and scroll position
-      if (deltaY < -70 && canSwipeUp) {
+      if (deltaY < -40 && canSwipeUp) {
         // Swipe up - next card
         goToNextCard();
-      } else if (deltaY > 70 && canSwipeDown && !translationShown) {
-        // Swipe down - show translation
+      } else if (deltaY > 40 && canSwipeDown && !translationShown) {
+        // Swipe down - reveal content
         toggleTranslation();
       }
     }
@@ -415,29 +425,31 @@
       if (translationShown) return;
       
       translationShown = true;
-      translationArea.classList.add('expanded');
       
-      // Hide instructions when showing translation
+      // Remove blur to reveal content
+      blurredContent.classList.remove('blurred');
+      
+      // Hide instructions when revealing
       if (currentIndex === 0 && instructionsArea) {
         instructionsArea.style.display = 'none';
       }
-      
-      // Animate translation appearance
-      gsap.fromTo(translationArea.querySelector('div'), 
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }
-      );
     }
     
     function updateCard() {
+      if (cards.length === 0) return;
+      
       const card = cards[currentIndex];
       
-      typeBadge.textContent = card.type;
-      originalText.textContent = card.original;
-      translationText.textContent = card.translation;
+      // Update card content
+      wordText.textContent = card.word;
+      phoneticText.textContent = card.phonetic;
+      posText.textContent = card.pos;
+      meaningText.textContent = card.meaning;
+      sentenceText.textContent = card.sentence;
+      typeBadge.textContent = '#' + card.type;
       
-      // Reset translation area
-      translationArea.classList.remove('expanded');
+      // Reset blur - content should be blurred for new card
+      blurredContent.classList.add('blurred');
       
       // Reset scroll position
       cardInner.scrollTop = 0;
@@ -543,6 +555,36 @@
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && !aboutModal.classList.contains('hidden')) {
         closeAboutModal();
+      }
+    });
+    
+    // Share functionality
+    const shareBtn = document.getElementById('shareBtn');
+    
+    shareBtn.addEventListener('click', async () => {
+      const shareData = {
+        title: 'UpDownCard',
+        text: 'Memorize Everything by Swiping Up & Down - Learn English vocabulary from Lenny\'s podcast!',
+        url: window.location.href
+      };
+      
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+        } catch (err) {
+          console.log('Share cancelled or failed:', err);
+        }
+      } else {
+        // Fallback: copy link to clipboard
+        try {
+          await navigator.clipboard.writeText(window.location.href);
+          shareBtn.querySelector('span').textContent = 'Link copied!';
+          setTimeout(() => {
+            shareBtn.querySelector('span').textContent = 'Share';
+          }, 2000);
+        } catch (err) {
+          console.log('Copy failed:', err);
+        }
       }
     });
   </script>
