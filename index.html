@@ -47,6 +47,21 @@
     .card-inner {
       background: linear-gradient(145deg, #1a1a1d 0%, #111113 100%);
       border: 1px solid rgba(185, 255, 102, 0.2);
+      scrollbar-width: thin;
+      scrollbar-color: rgba(185, 255, 102, 0.3) transparent;
+    }
+    
+    .card-inner::-webkit-scrollbar {
+      width: 4px;
+    }
+    
+    .card-inner::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    .card-inner::-webkit-scrollbar-thumb {
+      background: rgba(185, 255, 102, 0.3);
+      border-radius: 2px;
     }
     
     .type-badge {
@@ -143,7 +158,7 @@
   <main class="min-h-screen flex items-center justify-center px-4 py-20">
     <div class="card-container w-full max-w-2xl">
       <div id="swipeCard" class="swipe-card">
-        <div class="card-inner rounded-[32px] p-8 sm:p-10 card-shadow">
+        <div id="cardInner" class="card-inner rounded-[32px] p-8 sm:p-10 card-shadow max-h-[70vh] overflow-y-auto">
           <!-- Type Badge -->
           <div class="mb-6">
             <span id="typeBadge" class="type-badge inline-block px-4 py-1.5 rounded-full text-black text-sm font-semibold display-font uppercase tracking-wider">
@@ -240,6 +255,7 @@
     
     // DOM Elements
     const swipeCard = document.getElementById('swipeCard');
+    const cardInner = document.getElementById('cardInner');
     const typeBadge = document.getElementById('typeBadge');
     const originalText = document.getElementById('originalText');
     const translationArea = document.getElementById('translationArea');
@@ -283,12 +299,19 @@
       currentY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
       const deltaY = currentY - startY;
       
-      // Limit drag distance
-      const limitedDelta = Math.max(-100, Math.min(100, deltaY));
+      // Check scroll position
+      const isAtTop = cardInner.scrollTop <= 5;
+      const isAtBottom = cardInner.scrollTop + cardInner.clientHeight >= cardInner.scrollHeight - 5;
       
-      // Apply transform with resistance
-      const resistance = 0.5;
-      swipeCard.style.transform = `translateY(${limitedDelta * resistance}px) rotateX(${-limitedDelta * 0.05}deg)`;
+      // Only apply swipe transform when at boundaries
+      if ((deltaY < 0 && isAtTop) || (deltaY > 0 && isAtBottom)) {
+        // Limit drag distance
+        const limitedDelta = Math.max(-100, Math.min(100, deltaY));
+        
+        // Apply transform with resistance
+        const resistance = 0.4;
+        swipeCard.style.transform = `translateY(${limitedDelta * resistance}px) rotateX(${-limitedDelta * 0.03}deg)`;
+      }
     }
     
     function handleEnd() {
@@ -300,12 +323,16 @@
       swipeCard.style.transition = 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
       swipeCard.style.transform = 'translateY(0) rotateX(0)';
       
-      // Determine action based on swipe distance
-      if (deltaY < -50) {
-        // Swipe up - next card
+      // Check scroll position
+      const isAtTop = cardInner.scrollTop <= 5;
+      const isAtBottom = cardInner.scrollTop + cardInner.clientHeight >= cardInner.scrollHeight - 5;
+      
+      // Determine action based on swipe distance and scroll position
+      if (deltaY < -70 && isAtTop) {
+        // Swipe up - next card (only when scrolled to top)
         goToNextCard();
-      } else if (deltaY > 50 && !translationShown) {
-        // Swipe down - show translation
+      } else if (deltaY > 70 && isAtBottom && !translationShown) {
+        // Swipe down - show translation (only when scrolled to bottom)
         toggleTranslation();
       }
     }
@@ -357,6 +384,9 @@
       
       // Reset translation area
       translationArea.classList.remove('expanded');
+      
+      // Reset scroll position
+      cardInner.scrollTop = 0;
       
       // Show instructions only on first card
       if (instructionsArea) {
