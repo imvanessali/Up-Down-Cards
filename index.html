@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Swipe Cards</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/gsap.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Crimson+Pro:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    body {
+      font-family: 'Crimson Pro', Georgia, serif;
+      background: #0a0a0b;
+      overflow: hidden;
+      touch-action: none;
+    }
+    
+    .display-font {
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    
+    .bg-lime-brand { background-color: #B9FF66; }
+    .text-lime-brand { color: #B9FF66; }
+    .border-lime-brand { border-color: #B9FF66; }
+    
+    .card-container {
+      perspective: 1200px;
+    }
+    
+    .swipe-card {
+      transform-style: preserve-3d;
+      transition: transform 0.1s ease-out;
+    }
+    
+    .card-shadow {
+      box-shadow: 
+        0 8px 0 0 rgba(185, 255, 102, 0.15),
+        0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+    
+    .card-inner {
+      background: linear-gradient(145deg, #1a1a1d 0%, #111113 100%);
+      border: 1px solid rgba(185, 255, 102, 0.2);
+    }
+    
+    .type-badge {
+      background: linear-gradient(135deg, #B9FF66 0%, #9ae550 100%);
+      box-shadow: 0 2px 8px rgba(185, 255, 102, 0.3);
+    }
+    
+    .translation-area {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .translation-area.expanded {
+      max-height: 500px;
+    }
+    
+    .progress-ring {
+      transform: rotate(-90deg);
+    }
+    
+    
+    .grain-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    }
+    
+    .glow-orb {
+      position: fixed;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(185, 255, 102, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    .card-content {
+      font-size: 1.35rem;
+      line-height: 1.8;
+      letter-spacing: 0.01em;
+    }
+    
+    @media (max-width: 640px) {
+      .card-content {
+        font-size: 1.15rem;
+        line-height: 1.7;
+      }
+    }
+    
+    </style>
+</head>
+<body class="min-h-screen text-white antialiased selection:bg-[#B9FF66] selection:text-black">
+  <!-- Background Effects -->
+  <div class="grain-overlay"></div>
+  <div class="glow-orb" style="top: -200px; left: -200px;"></div>
+  <div class="glow-orb" style="bottom: -300px; right: -200px;"></div>
+  
+  <!-- Header -->
+  <header class="fixed top-0 left-0 right-0 z-50 px-6 py-5">
+    <div class="max-w-2xl mx-auto flex justify-between items-center">
+      <div class="flex flex-col">
+        <div class="flex items-center gap-2">
+          <div class="relative w-5 h-5">
+            <svg viewBox="0 0 24 24" fill="currentColor" class="w-full h-full text-lime-brand">
+              <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z"/>
+            </svg>
+          </div>
+          <span class="text-lg font-semibold tracking-tight display-font text-white">
+            Snippets from Lenny
+          </span>
+        </div>
+        <span class="text-xs text-zinc-500 ml-7 block max-w-[200px]">@lennysan Thank you for generously sharing the podcast transcripts.</span>
+      </div>
+      
+      <!-- Progress Indicator -->
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-zinc-500 display-font whitespace-nowrap">
+          <span id="currentIndex">1</span>/<span id="totalCards">5</span>
+        </span>
+        <svg class="progress-ring w-7 h-7" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="14" fill="none" stroke="#27272a" stroke-width="4"/>
+          <circle id="progressCircle" cx="18" cy="18" r="14" fill="none" stroke="#B9FF66" stroke-width="4" 
+                  stroke-dasharray="88" stroke-dashoffset="70.4" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Card Area -->
+  <main class="min-h-screen flex items-center justify-center px-4 py-20">
+    <div class="card-container w-full max-w-2xl">
+      <div id="swipeCard" class="swipe-card">
+        <div class="card-inner rounded-[32px] p-8 sm:p-10 card-shadow">
+          <!-- Type Badge -->
+          <div class="mb-6">
+            <span id="typeBadge" class="type-badge inline-block px-4 py-1.5 rounded-full text-black text-sm font-semibold display-font uppercase tracking-wider">
+              leadership
+            </span>
+          </div>
+          
+          <!-- Original Content -->
+          <div class="mb-4">
+            <p id="originalText" class="card-content text-zinc-100">
+              Before that, she started a contact management startup that was acquired by LinkedIn where she ended up leading LinkedIn's marketing efforts for their growth team.
+            </p>
+          </div>
+          
+          <!-- Translation Area (Hidden by default) -->
+          <div id="translationArea" class="translation-area">
+            <div class="border-t border-zinc-800 pt-6 mt-6">
+              <div class="flex items-center gap-2 mb-3">
+                <i data-lucide="languages" class="w-4 h-4 text-lime-brand"></i>
+                <span class="text-xs text-zinc-500 display-font uppercase tracking-wider">Translation</span>
+              </div>
+              <p id="translationText" class="card-content text-zinc-400">
+                在此之前，她创办了一家联系人管理初创公司，被LinkedIn收购后，她最终负责领导LinkedIn增长团队的营销工作。
+              </p>
+            </div>
+          </div>
+          
+          <!-- Instructions (only shown on first card) -->
+          <div id="instructionsArea" class="mt-6 pt-6 border-t border-zinc-800/50">
+            <div class="flex flex-col gap-3 text-sm text-zinc-500">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center flex-shrink-0">
+                  <i data-lucide="chevron-up" class="w-4 h-4 text-lime-brand"></i>
+                </div>
+                <span>Swipe up for next card</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center flex-shrink-0">
+                  <i data-lucide="chevron-down" class="w-4 h-4 text-lime-brand"></i>
+                </div>
+                <span>Swipe down to show translation</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+
+  <script>
+    lucide.createIcons();
+    
+    // Card Data
+    const cards = [
+      {
+        id: 1,
+        original: "Before that, she started a contact management startup that was acquired by LinkedIn where she ended up leading LinkedIn's marketing efforts for their growth team.",
+        type: "leadership",
+        translation: "在此之前，她创办了一家联系人管理初创公司，被LinkedIn收购后，她最终负责领导LinkedIn增长团队的营销工作。"
+      },
+      {
+        id: 2,
+        original: "Sprig lets product teams collect user insights fast, allowing you to better understand why users take certain actions and how they feel about the experience.",
+        type: "research",
+        translation: "Sprig让产品团队能够快速收集用户洞察，帮助你更好地理解用户为何采取某些行动以及他们对体验的感受。"
+      },
+      {
+        id: 3,
+        original: "Some of them just said, \"Here are my top two, and here's one I think you should avoid.\" I wanted to design it in a way where if you're a busy founder, you're a busy product person, which is the list that I chose for this curiosity loop, you would be able to sit down on your couch at the end of the night, read this interesting email and tap out a quick reply and give me that answer.",
+        type: "research",
+        translation: "有些人只是说：「这是我最推荐的两个，这是我认为你应该避免的。」我想设计一种方式，让忙碌的创始人或产品人员能在晚上坐在沙发上，读一封有趣的邮件，然后快速回复给出答案。"
+      },
+      {
+        id: 4,
+        original: "So when I was working in marketing and product at a startup, one of the things we would always have is a group of our top customers on DM, basically.",
+        type: "research",
+        translation: "在我做初创公司营销和产品工作时，我们总会在私信群里维护一批核心客户。"
+      },
+      {
+        id: 5,
+        original: "Do you mind just giving us your quick thoughts and telling us why?\" And then being able to as a marketer come back to the product conversation and say, here is the literal voice of the customer and four or five different verbatims on what people think about this really enabled me as a marketer to have a seat at the table.",
+        type: "research",
+        translation: "「你能快速告诉我们你的想法和原因吗？」然后作为营销人员回到产品讨论中说：这是客户的原话，这里有四五条关于他们看法的真实反馈——这让我作为营销人员在决策桌上有了一席之地。"
+      }
+    ];
+    
+    // State
+    let currentIndex = 0;
+    let translationShown = false;
+    let startY = 0;
+    let currentY = 0;
+    let isDragging = false;
+    
+    // DOM Elements
+    const swipeCard = document.getElementById('swipeCard');
+    const typeBadge = document.getElementById('typeBadge');
+    const originalText = document.getElementById('originalText');
+    const translationArea = document.getElementById('translationArea');
+    const translationText = document.getElementById('translationText');
+    const currentIndexEl = document.getElementById('currentIndex');
+    const totalCardsEl = document.getElementById('totalCards');
+    const progressCircle = document.getElementById('progressCircle');
+    const instructionsArea = document.getElementById('instructionsArea');
+    
+    // Initialize
+    totalCardsEl.textContent = cards.length;
+    updateProgress();
+    
+    // Touch/Mouse Events
+    swipeCard.addEventListener('touchstart', handleStart, { passive: true });
+    swipeCard.addEventListener('touchmove', handleMove, { passive: true });
+    swipeCard.addEventListener('touchend', handleEnd);
+    
+    swipeCard.addEventListener('mousedown', handleStart);
+    document.addEventListener('mousemove', handleMove);
+    document.addEventListener('mouseup', handleEnd);
+    
+    // Keyboard support
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp') {
+        goToNextCard();
+      } else if (e.key === 'ArrowDown') {
+        toggleTranslation();
+      }
+    });
+    
+    function handleStart(e) {
+      isDragging = true;
+      startY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+      swipeCard.style.transition = 'none';
+    }
+    
+    function handleMove(e) {
+      if (!isDragging) return;
+      
+      currentY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+      const deltaY = currentY - startY;
+      
+      // Limit drag distance
+      const limitedDelta = Math.max(-100, Math.min(100, deltaY));
+      
+      // Apply transform with resistance
+      const resistance = 0.5;
+      swipeCard.style.transform = `translateY(${limitedDelta * resistance}px) rotateX(${-limitedDelta * 0.05}deg)`;
+    }
+    
+    function handleEnd() {
+      if (!isDragging) return;
+      isDragging = false;
+      
+      const deltaY = currentY - startY;
+      
+      swipeCard.style.transition = 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+      swipeCard.style.transform = 'translateY(0) rotateX(0)';
+      
+      // Determine action based on swipe distance
+      if (deltaY < -50) {
+        // Swipe up - next card
+        goToNextCard();
+      } else if (deltaY > 50 && !translationShown) {
+        // Swipe down - show translation
+        toggleTranslation();
+      }
+    }
+    
+    function goToNextCard() {
+      if (currentIndex >= cards.length - 1) {
+        // Last card - loop back or show completion
+        animateCardExit('up', () => {
+          currentIndex = 0;
+          translationShown = false;
+          updateCard();
+          animateCardEnter();
+        });
+        return;
+      }
+      
+      animateCardExit('up', () => {
+        currentIndex++;
+        translationShown = false;
+        updateCard();
+        animateCardEnter();
+      });
+    }
+    
+    function toggleTranslation() {
+      if (translationShown) return;
+      
+      translationShown = true;
+      translationArea.classList.add('expanded');
+      
+      // Hide instructions when showing translation
+      if (currentIndex === 0 && instructionsArea) {
+        instructionsArea.style.display = 'none';
+      }
+      
+      // Animate translation appearance
+      gsap.fromTo(translationArea.querySelector('div'), 
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }
+      );
+    }
+    
+    function updateCard() {
+      const card = cards[currentIndex];
+      
+      typeBadge.textContent = card.type;
+      originalText.textContent = card.original;
+      translationText.textContent = card.translation;
+      
+      // Reset translation area
+      translationArea.classList.remove('expanded');
+      
+      // Show instructions only on first card
+      if (instructionsArea) {
+        instructionsArea.style.display = currentIndex === 0 ? 'block' : 'none';
+      }
+      
+      // Update progress
+      updateProgress();
+    }
+    
+    function updateProgress() {
+      currentIndexEl.textContent = currentIndex + 1;
+      
+      const progress = ((currentIndex + 1) / cards.length);
+      const circumference = 88; // 2 * PI * 14
+      const offset = circumference * (1 - progress);
+      
+      gsap.to(progressCircle, {
+        strokeDashoffset: offset,
+        duration: 0.5,
+        ease: 'power2.out'
+      });
+    }
+    
+    function animateCardExit(direction, callback) {
+      const yOffset = direction === 'up' ? -150 : 150;
+      
+      gsap.to(swipeCard, {
+        y: yOffset,
+        opacity: 0,
+        rotateX: direction === 'up' ? 15 : -15,
+        duration: 0.35,
+        ease: 'power2.in',
+        onComplete: callback
+      });
+    }
+    
+    function animateCardEnter() {
+      gsap.fromTo(swipeCard, 
+        { y: 100, opacity: 0, rotateX: -10 },
+        { y: 0, opacity: 1, rotateX: 0, duration: 0.5, ease: 'power3.out' }
+      );
+    }
+    
+    // Initial animation
+    gsap.from(swipeCard, {
+      y: 50,
+      opacity: 0,
+      duration: 0.8,
+      ease: 'power3.out',
+      delay: 0.2
+    });
+    
+    // Floating orbs animation
+    gsap.to('.glow-orb', {
+      x: 'random(-50, 50)',
+      y: 'random(-50, 50)',
+      duration: 8,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut',
+      stagger: 2
+    });
+  </script>
+</body>
+</html>
+
