@@ -125,19 +125,17 @@
   
   <!-- Header -->
   <header class="fixed top-0 left-0 right-0 z-50 px-6 py-5">
-    <div class="max-w-2xl mx-auto flex justify-between items-center">
-      <div class="flex flex-col">
-        <div class="flex items-center gap-2">
-          <div class="relative w-5 h-5">
-            <svg viewBox="0 0 24 24" fill="currentColor" class="w-full h-full text-lime-brand">
-              <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z"/>
-            </svg>
-          </div>
-          <span class="text-lg font-semibold tracking-tight display-font text-white">
-            Snippets from Lenny
-          </span>
+    <div class="max-w-2xl mx-auto flex flex-col items-center gap-3">
+      <!-- Title -->
+      <div class="flex items-center gap-2">
+        <div class="relative w-5 h-5">
+          <svg viewBox="0 0 24 24" fill="currentColor" class="w-full h-full text-lime-brand">
+            <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z"/>
+          </svg>
         </div>
-        <span class="text-xs text-zinc-500 ml-7 block max-w-[200px]">@lennysan Thank you for generously sharing the podcast transcripts.</span>
+        <span class="text-lg font-semibold tracking-tight display-font text-white">
+          Snippets from Lenny
+        </span>
       </div>
       
       <!-- Progress Indicator -->
@@ -155,10 +153,10 @@
   </header>
 
   <!-- Main Card Area -->
-  <main class="min-h-screen flex items-center justify-center px-4 py-20">
+  <main class="min-h-screen flex items-center justify-center px-4 pt-28 pb-16">
     <div class="card-container w-full max-w-2xl">
       <div id="swipeCard" class="swipe-card">
-        <div id="cardInner" class="card-inner rounded-[32px] p-8 sm:p-10 card-shadow max-h-[70vh] overflow-y-auto">
+        <div id="cardInner" class="card-inner rounded-[32px] p-8 sm:p-10 card-shadow max-h-[60vh] overflow-y-auto">
           <!-- Type Badge -->
           <div class="mb-6">
             <span id="typeBadge" class="type-badge inline-block px-4 py-1.5 rounded-full text-black text-sm font-semibold display-font uppercase tracking-wider">
