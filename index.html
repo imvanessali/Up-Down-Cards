@@ -299,12 +299,16 @@
       currentY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
       const deltaY = currentY - startY;
       
-      // Check scroll position
+      // Check if content is scrollable
+      const isScrollable = cardInner.scrollHeight > cardInner.clientHeight + 5;
       const isAtTop = cardInner.scrollTop <= 5;
       const isAtBottom = cardInner.scrollTop + cardInner.clientHeight >= cardInner.scrollHeight - 5;
       
-      // Only apply swipe transform when at boundaries
-      if ((deltaY < 0 && isAtTop) || (deltaY > 0 && isAtBottom)) {
+      // Apply swipe transform when: not scrollable, or at boundaries
+      const canSwipeUp = !isScrollable || isAtTop;
+      const canSwipeDown = !isScrollable || isAtBottom;
+      
+      if ((deltaY < 0 && canSwipeUp) || (deltaY > 0 && canSwipeDown)) {
         // Limit drag distance
         const limitedDelta = Math.max(-100, Math.min(100, deltaY));
         
@@ -323,16 +327,21 @@
       swipeCard.style.transition = 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
       swipeCard.style.transform = 'translateY(0) rotateX(0)';
       
-      // Check scroll position
+      // Check if content is scrollable
+      const isScrollable = cardInner.scrollHeight > cardInner.clientHeight + 5;
       const isAtTop = cardInner.scrollTop <= 5;
       const isAtBottom = cardInner.scrollTop + cardInner.clientHeight >= cardInner.scrollHeight - 5;
       
+      // Can swipe when: not scrollable, or at boundaries
+      const canSwipeUp = !isScrollable || isAtTop;
+      const canSwipeDown = !isScrollable || isAtBottom;
+      
       // Determine action based on swipe distance and scroll position
-      if (deltaY < -70 && isAtTop) {
-        // Swipe up - next card (only when scrolled to top)
+      if (deltaY < -70 && canSwipeUp) {
+        // Swipe up - next card
         goToNextCard();
-      } else if (deltaY > 70 && isAtBottom && !translationShown) {
-        // Swipe down - show translation (only when scrolled to bottom)
+      } else if (deltaY > 70 && canSwipeDown && !translationShown) {
+        // Swipe down - show translation
         toggleTranslation();
       }
     }
