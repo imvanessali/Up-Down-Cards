@@ -310,11 +310,11 @@
       
       if ((deltaY < 0 && canSwipeUp) || (deltaY > 0 && canSwipeDown)) {
         // Limit drag distance
-        const limitedDelta = Math.max(-100, Math.min(100, deltaY));
+        const limitedDelta = Math.max(-150, Math.min(150, deltaY));
         
-        // Apply transform with resistance
-        const resistance = 0.4;
-        swipeCard.style.transform = `translateY(${limitedDelta * resistance}px) rotateX(${-limitedDelta * 0.03}deg)`;
+        // Apply transform - more responsive
+        const resistance = 0.8;
+        swipeCard.style.transform = `translateY(${limitedDelta * resistance}px) rotateX(${-limitedDelta * 0.02}deg)`;
       }
     }
     
