@@ -306,12 +306,12 @@
         console.error('Error loading vocabulary:', error);
       });
     
-    // Touch Events only (no mouse/click support)
-    swipeCard.addEventListener('touchstart', handleStart, { passive: true });
-    swipeCard.addEventListener('touchmove', handleMove, { passive: true });
+    // Touch Events for mobile
+    swipeCard.addEventListener('touchstart', handleTouchStart, { passive: true });
+    swipeCard.addEventListener('touchmove', handleTouchMove, { passive: true });
     swipeCard.addEventListener('touchend', handleEnd);
     
-    // Keyboard support
+    // Keyboard support for desktop
     document.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowUp') {
         goToNextCard();
@@ -320,15 +320,16 @@
       }
     });
     
-    function handleStart(e) {
+    function handleTouchStart(e) {
+      if (!e.touches || !e.touches[0]) return;
       isDragging = true;
       startY = e.touches[0].clientY;
       currentY = startY;
       swipeCard.style.transition = 'none';
     }
     
-    function handleMove(e) {
-      if (!isDragging) return;
+    function handleTouchMove(e) {
+      if (!isDragging || !e.touches || !e.touches[0]) return;
       
       currentY = e.touches[0].clientY;
       const deltaY = currentY - startY;
